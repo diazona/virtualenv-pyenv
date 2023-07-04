@@ -7,6 +7,7 @@ from pyenv_inspect import find_pyenv_python_executable
 from pyenv_inspect.exceptions import SpecParseError, UnsupportedImplementation
 from virtualenv.discovery.discover import Discover
 from virtualenv.discovery.py_info import PythonInfo
+from virtualenv.discovery.py_spec import PythonSpec
 
 
 class Pyenv(Discover):
@@ -50,8 +51,13 @@ class Pyenv(Discover):
 
     def _get_interpreter(self, string_spec: str) -> Optional[PythonInfo]:
         logging.debug('find interpreter for spec %s', string_spec)
+        spec: PythonSpec = PythonSpec.from_string_spec(string_spec)
+        if spec.implementation:
+            logging.error('only CPython is currently supported')
+            return None
+        exec_name = next(spec.generate_names())[0]
         try:
-            exec_path = find_pyenv_python_executable(string_spec)
+            exec_path = find_pyenv_python_executable(exec_name)
         except SpecParseError:
             logging.error('failed to parse spec %s', string_spec)
             return None
