@@ -14,7 +14,10 @@ class Pyenv(Discover):
 
     def __init__(self, options) -> None:
         super().__init__(options)
-        self._string_specs: List[str] = options.python
+        try:
+            self._string_specs: List[str] = options.python
+        except AttributeError:
+            raise RuntimeError("no Python version was provided to virtualenv-pyenv")
         self._app_data = options.app_data
 
     def __str__(self) -> str:
@@ -27,13 +30,15 @@ class Pyenv(Discover):
     @classmethod
     def add_parser_arguments(cls, parser) -> None:
         parser.add_argument(
-            '-p',
-            '--python',
-            metavar='py',
+            "-p",
+            "--python",
+            dest="python",
+            metavar="py",
             type=str,
-            action='append',
-            required=True,
-            help='interpreter based on what to create environment',
+            action="append",
+            default=[],
+            help="interpreter based on what to create environment (path/identifier) "
+            "- by default use the interpreter where the tool is installed - first found wins",
         )
 
     def run(self) -> Optional[PythonInfo]:
